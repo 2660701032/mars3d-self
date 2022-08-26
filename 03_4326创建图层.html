@@ -1,0 +1,89 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2022-08-23 08:58:53
+ * @LastEditors: Li Lin
+ * @LastEditTime: 2022-08-24 10:16:44
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!--引入cesium基础lib-->
+  <link href="http://mars3d.cn/lib/Cesium/Widgets/widgets.css" rel="stylesheet" type="text/css" />
+  <script>
+    // window.CESIUM_BASE_URL = "http://mars3d.cn/lib/Cesium/" //非必须，如jsp、asp.net等非html框架报错时建议取消注释
+  </script>
+  <script src="http://mars3d.cn/lib/Cesium/Cesium.js" type="text/javascript" ></script>
+  <script src="http://mars3d.cn/lib/turf/turf.min.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库lib-->
+  <link href="http://mars3d.cn/lib/mars3d/mars3d.css" rel="stylesheet" type="text/css" />
+  <script src="http://mars3d.cn/lib/mars3d/mars3d.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库插件lib（按需引入）-->
+  <script src="http://mars3d.cn/lib/mars3d/plugins/space/mars3d-space.js" type="text/javascript" ></script>
+  <style>
+    body #mars3d-dom {
+      width: 100%;
+      height: 900px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mars3d-dom"></div>
+  <script type="text/javascript">
+    /*
+      方法1：手动配置地图选项
+    */
+    // 地图的配置项
+    const mapOptions = {
+      scene: {
+        center: { lat: 22.969426, lng: 110.603628, alt: 10059762, heading: 0, pitch: -90 }
+      },
+      control: {
+        sceneModePicker: true
+      },
+      // 配置地图图层 - 多为天地图
+      basemaps: [
+        {
+          type: 'tdt',
+          icon: 'img/basemaps/tdt_img.jpg',
+          crs: 'EPSG:4326', // 默认是3857
+          layer: 'img_d',
+          name: '影像图层底图',
+          key: ['d3604bf2b50e4844e38b7ca6fcce7a38'],
+          show: true,
+          zIndex: 0,
+        },
+        {
+          type: 'tdt',
+          icon: 'img/basemaps/tdt_img.jpg',
+          crs: 'EPSG:4326',
+          layer: 'img_z',
+          name: '影像注记底图',
+          key: ['d3604bf2b50e4844e38b7ca6fcce7a38'],
+          show: true,
+        },
+      ],
+    }
+    // 实例化mars3d
+    const map = new mars3d.Map('mars3d-dom', mapOptions)
+    // const layer1 = new mars3d.layer.XyzLayer({
+    //   url: "//data.mars3d.cn/tile/dizhiChina/{z}/{x}/{y}.png",
+    //   crs: "EPSG:3857", // 标识为Web墨卡托投影坐标系，也是默认值
+    //   minimumLevel: 0,
+    //   maximumLevel: 10,
+    //   rectangle: { xmin: 69.706929, xmax: 136.560941, ymin: 15.831038, ymax: 52.558005 },
+    //   opacity: 0.7,
+    //   center: { lat: 22.43392, lng: 113.23887, alt: 8157553, heading: 354, pitch: -82 },
+    //   flyTo: true
+    // })
+    // map.addLayer(layer1)
+    console.log(map)
+
+  </script>
+</body>
+</html>

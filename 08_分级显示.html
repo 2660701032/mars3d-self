@@ -1,0 +1,133 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2022-08-23 08:58:53
+ * @LastEditors: Li Lin
+ * @LastEditTime: 2022-08-26 10:10:49
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!--引入cesium基础lib-->
+  <link href="http://mars3d.cn/lib/Cesium/Widgets/widgets.css" rel="stylesheet" type="text/css" />
+  <script>
+    // window.CESIUM_BASE_URL = "http://mars3d.cn/lib/Cesium/" //非必须，如jsp、asp.net等非html框架报错时建议取消注释
+  </script>
+  <script src="http://mars3d.cn/lib/Cesium/Cesium.js" type="text/javascript" ></script>
+  <script src="http://mars3d.cn/lib/turf/turf.min.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库lib-->
+  <link href="http://mars3d.cn/lib/mars3d/mars3d.css" rel="stylesheet" type="text/css" />
+  <script src="http://mars3d.cn/lib/mars3d/mars3d.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库插件lib（按需引入）-->
+  <script src="http://mars3d.cn/lib/mars3d/plugins/space/mars3d-space.js" type="text/javascript" ></script>
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+  <style>
+    #mars3d-dom {
+      margin-top: 10px;
+      width: 100%;
+      height: 900px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mars3d-dom"></div>
+  <script type="text/javascript">
+
+    const COLORS = [
+      '#f8f4b8',
+      '#f3e68a',
+      '#f3dc84',
+      '#eec875',
+      '#eab459',
+      '#e79a4e',
+      '#da922d',
+      '#d7642a',
+      '#cd4a2b',
+      '#c55644',
+      '#c85654',
+    ]
+
+    function STYLE_LIST(value) {
+      return COLORS.filter((item, index) => {
+        return index === value
+      })[0]
+    }
+
+    // 地图的配置项
+    const mapOptions = {
+      scene: {
+        center: { lat: 22.969426, lng: 110.603628, alt: 10059762, heading: 0, pitch: -90 }
+      },
+      // 配置地图图层 - 多为天地图
+      basemaps: [
+        {
+          type: 'tdt',
+          icon: 'img/basemaps/tdt_img.jpg',
+          layer: 'img_d',
+          name: '影像图层底图',
+          key: ['d3604bf2b50e4844e38b7ca6fcce7a38'],
+          show: true,
+        },
+        {
+          type: 'tdt',
+          icon: 'img/basemaps/tdt_img.jpg',
+          layer: 'img_z',
+          name: '影像注记底图',
+          key: ['d3604bf2b50e4844e38b7ca6fcce7a38'],
+          show: true,
+        }
+      ],
+    }
+    // 实例化mars3d
+    const map = new mars3d.Map('mars3d-dom', mapOptions)
+
+    /*
+      分级显示：
+        观察GeoJsonLayer.toGeoJson()后的数据， 配置一个这样的数据作为GeoJsonLayer的data然后根据symbol属性自定义颜色
+        1. 要先创建一个geojson格式的数据，从接口拿到信息，在数组里每个对象分别对应各自的
+           type = 'Feature' properties设置为每个区域的信息， geometry = JSON.parse(boundary)每个区域的boundary
+        2. 实例一个new mars3d.layer.GeoJsonLayer() 在属性data中 配置{ type: 'FeatureCollection', features: 步骤1完成的geojson数组}
+        3. new mars3d.layer.GeoJsonLayer实例的symbol属性可以为一个对象或函数 函数接受三个参数(attr：步骤1中配置的每个数据的属性, style, feature)，可以返回一个color属性设置颜色
+    */
+
+    $.get('http://www.sasclouds.com/api/region/v1/region/pid/130000/l', (res, status) => {
+      const { data } = res
+      const json = data.map(({regionId, regionName, boundary}, index) => {
+        const feature = JSON.parse(boundary)
+        const properties = {
+          regionId,
+          regionName,
+          index
+        }
+        return {
+          type: 'Feature',
+          properties,
+          geometry: feature,
+        }
+      })
+
+      const jsonLayer = new mars3d.layer.GeoJsonLayer({
+        name: '根据geojson分级显示',
+        data: { type: 'FeatureCollection', features: json},
+        symbol: (attr, style, feature) => {
+          return {
+            color: STYLE_LIST(attr.index),
+            opacity: 0.6
+          }
+        },
+        flyTo: true,
+      })
+      jsonLayer.on(mars3d.EventType.click, (e)=>{
+        console.log(e)
+      })
+      map.addLayer(jsonLayer)
+    })
+
+  </script>
+</body>
+</html>

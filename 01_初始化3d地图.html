@@ -1,0 +1,154 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2022-08-23 08:58:53
+ * @LastEditors: Li Lin
+ * @LastEditTime: 2022-08-24 14:52:58
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!--引入cesium基础lib-->
+  <link href="http://mars3d.cn/lib/Cesium/Widgets/widgets.css" rel="stylesheet" type="text/css" />
+  <script>
+    // window.CESIUM_BASE_URL = "http://mars3d.cn/lib/Cesium/" //非必须，如jsp、asp.net等非html框架报错时建议取消注释
+  </script>
+  <script src="http://mars3d.cn/lib/Cesium/Cesium.js" type="text/javascript" ></script>
+  <script src="http://mars3d.cn/lib/turf/turf.min.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库lib-->
+  <link href="http://mars3d.cn/lib/mars3d/mars3d.css" rel="stylesheet" type="text/css" />
+  <script src="http://mars3d.cn/lib/mars3d/mars3d.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库插件lib（按需引入）-->
+  <script src="http://mars3d.cn/lib/mars3d/plugins/space/mars3d-space.js" type="text/javascript" ></script>
+  <style>
+    body #mars3d-dom {
+      width: 100%;
+      height: 900px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mars3d-dom"></div>
+  <script type="text/javascript">
+    /*
+      方法1：手动配置地图选项
+    */
+    // 地图的配置项
+    const mapOptions = {
+      // 配置场景参数
+      scene: {
+        center: { // 默认相机视角
+          lat: 30.054604, lng: 108.885436, alt: 17036414, heading: 0, pitch: -90
+        },
+        showSun: true,
+        showMoon: true,
+        showSkyBox: true,  // 是否显示天空盒子
+        showSkyAtmosphere: false, // 是否显示地球大气层外光圈
+        fog: true, // 是否显示雾化效果
+        fxaa: true, // 是否开启快速抗锯齿
+
+        // // 地球相关参数
+        globe: {
+          show: true, // 是否显示地球 默认true
+          showGroundAtmosphere: true, // 是否在地球上绘制的地面大气
+          depthTestAgainstTerrain: false, // 是否启用深度监测
+          baseColor: "#546a53", // 地球背景色
+          enableLighting: true, // 是否显示黄昏线
+        },
+
+        // 相机操作相关参数
+        cameraController: {
+          zoomFactor: 3.0, // 滚轮放大倍数
+          minimumZoomDistance: 1, // 相机最近视距 单位米
+          maximumZoomDistance: 50000000, // 相机最远视距
+          enableRotate: true, // 2D和3D视图下，是否允许用户旋转相机
+          enableZoom: true // 是否允许用户放大缩小视图
+        }
+      },
+      
+      // 地图的控件
+      control: {
+        // baseLayerPicker: true, // basemaps底图切换按钮
+        homeButton: true, // 视角复位按钮
+        sceneModePicker: true, // 二三维切换按钮
+        navigationHelpButton: true, // 帮助按钮
+        fullscreenButton: true, // 全屏按钮
+        contextmenu: { // 右键菜单
+          preventDefault: true, // 是否取消右键菜单 默认true
+          hasDefault: false // 是否绑定默认的地图右键菜单 - 关键
+        },
+        locationBar: { // 状态栏 显示经纬度等信息
+          fps: true, // 是否显示fps
+          latDecimal: 1, // 保留经纬度的小数位
+          template: `<div>经度：{lng}</div> <div>维度：{lat}</div><div>海拔{alt}</div>`, // 自定义配置显示信息 - 鼠标经过的经纬度 海拔 视高等
+          style: { // 设置样式
+            bottom: '60px',
+            right: 0
+          }
+        }
+      },
+
+      // 地形服务配置
+      terrain: {
+        url: "//data.mars3d.cn/terrain", // 地形服务地址
+        show: true // 是否启用显示地形
+      },
+
+      // 配置地图图层 - 多为天地图
+      basemaps: [
+        {
+          name: '天地图', // 图层名称
+          type: 'tdt', // 多为天地图
+
+          /*
+          图层类型包括：
+            vec_d: 电子图层
+            vec_z: 电子注记
+            vec_e: 电子注记英文
+            img_d: 卫星影像
+            img_z: 影像注记
+            img_e: 影像注记英文
+            ter_d: 地形渲染图
+            ter_z: 地形渲染图注记
+          */
+          layer: 'img_d', // 图层类型
+          show: true // 是否显示该图层
+        },
+        {
+          name: '天地图',
+          type: 'tdt',
+          layer: 'img_z',
+          show: true
+        }
+      ],
+    }
+    // 实例化mars3d
+    const map = new mars3d.Map('mars3d-dom', mapOptions)
+    console.log(map)
+    map.on(mars3d.EventType.click, (e) => {
+      log
+      // 将3d的笛卡尔坐标转换为经纬度
+      const a = mars3d.LngLatPoint.fromCartesian(e.cartesian)
+      alert(`经度：${a.lng}, 纬度：${a.lat}, 海拔：${a.alt}`)
+    })
+    /*
+      方法2：使用json配置地图配置选项
+    */
+    // let map = null
+    // const url = 'http://mars3d.cn/config/config.json'
+    // // mars3d.Util.fetchJson方法请求服务返回结果
+    // mars3d.Util.fetchJson({url}).then((json) => {
+    //   console.log(json)
+    //   initMap(json.map3d)
+    // })
+    // function initMap(map) {
+    //   map = new mars3d.Map('mars3d-dom', map)
+    // }
+  </script>
+</body>
+</html>

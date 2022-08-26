@@ -1,0 +1,175 @@
+<!--
+ * @Author: Do not edit
+ * @Date: 2022-08-23 08:58:53
+ * @LastEditors: Li Lin
+ * @LastEditTime: 2022-08-26 11:11:12
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!--引入cesium基础lib-->
+  <link href="http://mars3d.cn/lib/Cesium/Widgets/widgets.css" rel="stylesheet" type="text/css" />
+  <script>
+    // window.CESIUM_BASE_URL = "http://mars3d.cn/lib/Cesium/" //非必须，如jsp、asp.net等非html框架报错时建议取消注释
+  </script>
+  <script src="http://mars3d.cn/lib/Cesium/Cesium.js" type="text/javascript" ></script>
+  <script src="http://mars3d.cn/lib/turf/turf.min.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库lib-->
+  <link href="http://mars3d.cn/lib/mars3d/mars3d.css" rel="stylesheet" type="text/css" />
+  <script src="http://mars3d.cn/lib/mars3d/mars3d.js" type="text/javascript" ></script>
+
+  <!--引入mars3d库插件lib（按需引入）-->
+  <script src="http://mars3d.cn/lib/mars3d/plugins/space/mars3d-space.js" type="text/javascript" ></script>
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+  <style>
+    #mars3d-dom {
+      margin-top: 10px;
+      width: 100%;
+      height: 900px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mars3d-dom"></div>
+  <script type="text/javascript">
+    const cesium = mars3d.Cesium
+
+    // 地图的配置项
+    const mapOptions = {
+      scene: {
+        center: { lat: 22.969426, lng: 110.603628, alt: 22059762, heading: 0, pitch: -90 }
+      },
+      // 配置地图图层 - 多为天地图
+      basemaps: [
+        {
+          type: 'tdt',
+          icon: 'img/basemaps/tdt_img.jpg',
+          layer: 'img_d',
+          name: '影像图层底图',
+          key: ['d3604bf2b50e4844e38b7ca6fcce7a38'],
+          show: true,
+        },
+        {
+          type: 'tdt',
+          icon: 'img/basemaps/tdt_img.jpg',
+          layer: 'img_z',
+          name: '影像注记底图',
+          key: ['d3604bf2b50e4844e38b7ca6fcce7a38'],
+          show: true,
+        }
+      ],
+    }
+    mapOptions.scene.skyBox = new cesium.SkyBox({
+      sources: {
+        positiveX: 'http://mars3d.cn/img/skybox/5/tycho2t3_80_px.jpg',
+        negativeX: 'http://mars3d.cn/img/skybox/5/tycho2t3_80_mx.jpg',
+        positiveY: 'http://mars3d.cn/img/skybox/5/tycho2t3_80_py.jpg',
+        negativeY: 'http://mars3d.cn/img/skybox/5/tycho2t3_80_my.jpg',
+        positiveZ: 'http://mars3d.cn/img/skybox/5/tycho2t3_80_pz.jpg',
+        negativeZ: 'http://mars3d.cn/img/skybox/5/tycho2t3_80_mz.jpg',
+      }
+    })
+    // 实例化mars3d
+    const map = new mars3d.Map('mars3d-dom', mapOptions)
+
+
+    // 1. 创建矢量图层实例
+    const graphicLayer = new mars3d.layer.GraphicLayer()
+    map.addLayer(graphicLayer)
+
+    // 4. 卫星点击事件 高亮轨道
+    graphicLayer.on(mars3d.EventType.click, (e) => {
+      const gra = graphicLayer.graphics[0]
+      console.log(graphicLayer, gra)
+      gra.flyTo({
+        scale: 4,
+        complete: () =>{
+          gra.setOptions({
+            path: {
+              color: '#00ff00',
+              opacity: 1,
+              width: 2,
+            },
+          })
+          gra.coneShow = true // 打开视锥体
+        }
+      })
+    })
+
+    // 2. 创建卫星实例
+    const weixing = new mars3d.graphic.Satellite({
+      name: "GAOFEN 1",
+
+      //卫星两行轨道数
+      tle1: "1 39150U 13018A   21180.50843864  .00000088  00000-0  19781-4 0  9997",
+      tle2: "2 39150  97.8300 252.9072 0018449 344.7422  15.3253 14.76581022440650",
+
+      // 设置是否显示 gltf卫星模型 和对应的样式
+      model: {
+        url: "//data.mars3d.cn/gltf/mars/weixin.gltf",
+        scale: 1,
+        minimumPixelSize: 90,
+        autoHeading: true,
+        show: true
+      },
+
+      //设置文本样式
+      label: {
+        color: "#ffffff",
+        opacity: 1,
+        font_family: "楷体",
+        font_size: 45,
+        outline: true,
+        outlineColor: "#000000",
+        outlineWidth: 3,
+        background: true,
+        backgroundColor: "#000000",
+        backgroundOpacity: 0.5,
+        font_weight: "normal",
+        font_style: "normal",
+        pixelOffsetX: 0,
+        pixelOffsetY: -20,
+        scaleByDistance: true,
+        scaleByDistance_far: 10000000,
+        scaleByDistance_farValue: 0.4,
+        scaleByDistance_near: 100000,
+        scaleByDistance_nearValue: 1,
+        show: true
+      },
+      // 卫星映射地球的视域
+      cone: {
+        sensorType: mars3d.graphic.SatelliteSensor.Type.Rect,
+        angle1: 10,
+        angle2: 5,
+        color: "rgba(0,255,255,0.5)",
+        reverse: false,
+        show: false
+      },
+      // 卫星轨迹路径设置
+      path: {
+        show: true,
+        color: "#ffffff",
+        opacity: 0.5,
+        closure: true, // 轨迹闭合
+        width: 2
+      },
+
+      // 参考系
+      fixedFrameTransform: Cesium.Transforms.localFrameToFixedFrameGenerator("east", "south"),
+
+      // 刷新频率 单位帧
+      frameRate: 100,
+      attr: { name: "高分1号" }
+    })
+
+    // 3. 将卫星实例添加到矢量图层
+    graphicLayer.addGraphic(weixing)
+
+  </script>
+</body>
+</html>
